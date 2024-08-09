@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS district (
+    id INTEGER NOT NULL PRIMARY KEY,
+    name VARCHAR NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS lpus (
+    id INTEGER NOT NULL PRIMARY KEY,
+    district_id INTEGER NOT NULL,
+    full_name VARCHAR NOT NULL,
+    FOREIGN KEY (district_id) REFERENCES district(id)
+);

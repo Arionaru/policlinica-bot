@@ -1,14 +1,14 @@
 version: '3.8'
 services:
   postgres:
-    image: postgres:15.2
-    container_name: my_postgres
+    image: postgres:11.3
+    container_name: policlinica_local_db_1
     environment:
       POSTGRES_USER: postgress
       POSTGRES_PASSWORD: postgresspass
       POSTGRES_DB: policlinica
     ports:
-      - "5432:5432"
+      - "5414:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
