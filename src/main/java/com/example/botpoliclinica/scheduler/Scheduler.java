@@ -13,9 +13,8 @@ import java.io.IOException;
 public class Scheduler {
     private final AppointmentService appointmentService;
 
-    @Scheduled(cron = "*/30 * * * * *")
+    @Scheduled(cron = "0 0/2 * * * *")
     public void go() throws IOException, LineUnavailableException {
-        System.out.println("go");
         appointmentService.getAppointment();
     }
 }

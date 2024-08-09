@@ -23,6 +23,7 @@ repositories {
 
 dependencies {
     implementation 'org.telegram:telegrambots:6.9.7.1'
+    implementation 'org.postgresql:postgresql:42.6.0'
     implementation 'org.json:json:20231013'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.projectlombok:lombok'

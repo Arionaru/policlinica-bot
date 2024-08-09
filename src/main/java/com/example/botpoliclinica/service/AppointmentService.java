@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AppointmentService {
@@ -43,6 +45,10 @@ public class AppointmentService {
                 .findFirst();
         if (first.isPresent()) {
             telegramBot.sendMessage(459075077L,"Номерок найден");
+            log.info("Номерок найден");
+        } else {
+            log.info("Номерок не найден");
         }
+
     }
 }
