@@ -1,5 +1,6 @@
 package com.example.botpoliclinica;
 
+import com.example.botpoliclinica.service.LpusService;
 import com.example.botpoliclinica.service.TelegramBot;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

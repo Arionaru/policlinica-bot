@@ -1,5 +1,6 @@
 package com.example.botpoliclinica.service;
 
+import com.example.botpoliclinica.client.GorzdravFeignClient;
 import com.example.botpoliclinica.dto.Doctor;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +24,7 @@ import java.util.Scanner;
 @RequiredArgsConstructor
 public class AppointmentService {
     private final TelegramBot telegramBot;
+    private final GorzdravFeignClient gorzdravFeignClient;
 
     public void getAppointment() throws IOException, LineUnavailableException {
         //URL url = new URL("https://gorzdrav.spb.ru/_api/api/v2/schedule/lpu/256/doctor/%D0%B473%2e137%D0%B0/appointments");

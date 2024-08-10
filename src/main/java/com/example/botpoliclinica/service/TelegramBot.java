@@ -28,7 +28,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         System.out.println(update);
         Message message = update.getMessage();
-        sendMessage(message.getChatId(), message.getText());
+        sendMessage(message.getChatId(), String.format("Привет, %s", message.getFrom().getFirstName()));
 //        ResponseDto responseDto = new ResponseDto();
 //        String currency = "";
 //
