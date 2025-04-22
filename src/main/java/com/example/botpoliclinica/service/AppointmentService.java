@@ -32,7 +32,7 @@ public class AppointmentService {
         return gorzdravFeignClient.getDoctors(lpusId, specialityId).getResult();
     }
 
-    public SearchRequest saveSearchRequest(SearchRequest searchRequest) {
-        return searchRequestRepository.save(searchRequest);
+    public void saveSearchRequest(SearchRequest searchRequest) {
+        searchRequestRepository.save(searchRequest);
     }
 }
