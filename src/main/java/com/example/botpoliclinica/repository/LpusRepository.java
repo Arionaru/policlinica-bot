@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface LpusRepository extends JpaRepository<Lpus, Integer> {
     List<Lpus> findAllByDistrict_Id(Integer districtId);
+
+    void deleteByDistrict_Id(Integer id);
+
+    List<Lpus> findTopById(Integer id);
 }

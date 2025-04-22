@@ -7,10 +7,10 @@ import java.time.LocalDate;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Doctor {
-    String id;
-    String name;
-    Integer freeParticipantCount;
-    LocalDate nearestDate;
-    Integer freeTicketCount;
+public class DoctorDto {
+    private String id;
+    private String name;
+    private Integer freeParticipantCount;
+    private LocalDate nearestDate;
+    private Integer freeTicketCount;
 }
