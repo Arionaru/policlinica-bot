@@ -32,7 +32,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final TelegramBotConfiguration telegramBotConfiguration;
     private final DistrictRepository districtRepository;
     private final AppointmentService appointmentService;
-//    private final GorzdravFeignClient gorzdravFeignClient;
 
     @Override
     public String getBotUsername() {
@@ -46,76 +45,105 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        Message message = update.getMessage();
-        if (message != null) {
-            List<District> districts = districtRepository.findAll();
-            List<InlineButtonMessageDto> districtsMessageDtos = districts.stream()
-                    .map(district -> new InlineButtonMessageDto(
-                            district.getName(),
-                            String.format("district_%s", district.getId().toString()))
-                    )
-                    .toList();
-            InlineKeyboardMarkup markup = getKeyBoardRows(districtsMessageDtos, 3);
-            sendMessage(update.getMessage().getChatId(), "Бот предназначен для поиска номерков в поликлиниках СПб. " +
-                    "Выберите врача и бот уведомит вас, когда номерок появится. Срок поиска - 1 неделя.", null);
-            sendMessage(update.getMessage().getChatId(), "Выберите район:", markup);
-        }
+        Long chatId = update.getMessage() != null && update.getMessage().getChatId() != null
+                ? update.getMessage().getChatId()
+                : update.getCallbackQuery().getMessage().getChatId();
 
-        if (update.hasCallbackQuery()) {
-            CallbackQuery callbackQuery = update.getCallbackQuery();
-            String data = callbackQuery.getData();
-            String[] dataParts = data.split("_");
-            if (dataParts[0].equals("district")) {
-                List<Lpus> lpusByDistrictId = appointmentService.getLpusByDistrictId(Integer.valueOf(dataParts[1]));
-                List<InlineButtonMessageDto> lpusMessageDtos = lpusByDistrictId.stream()
-                        .map(lpus -> new InlineButtonMessageDto(
-                                lpus.getFullName(),
-                                String.format("lpus_%s", lpus.getId().toString())
-                        ))
-                        .toList();
-                InlineKeyboardMarkup markup = getKeyBoardRows(lpusMessageDtos, 1);
-                sendMessage(callbackQuery.getMessage().getChatId(), "Выберите поликлинику:", markup);
+        List<SearchRequest> searchByChatId = appointmentService.findSearchByChatId(chatId);
+        if (searchByChatId.size() > 1) {
+            sendMessage(chatId, "У вас есть 2 активных поиска. Новые будут доступны после их завершения.", null);
+        } else {
+            Message message = update.getMessage();
+            if (message != null) {
+                sendDistrictMessage(update);
             }
 
-            if (dataParts[0].equals("lpus")) {
-                Integer lpuId = Integer.valueOf(dataParts[1]);
-                List<SpecialityDto> specialities = appointmentService.getSpecialities(lpuId);
-                List<InlineButtonMessageDto> lpusMessageDtos = specialities.stream()
-                        .map(specialityDto -> new InlineButtonMessageDto(
-                                specialityDto.getName(),
-                                String.format("speciality_%s_%s", lpuId, specialityDto.getId().toString())
-                        ))
-                        .toList();
-                InlineKeyboardMarkup markup = getKeyBoardRows(lpusMessageDtos, 1);
-                sendMessage(callbackQuery.getMessage().getChatId(), "Выберите специальность:", markup);
-            }
+            if (update.hasCallbackQuery()) {
+                CallbackQuery callbackQuery = update.getCallbackQuery();
+                String data = callbackQuery.getData();
+                String[] dataParts = data.split("_");
+                if (dataParts[0].equals("district")) {
+                    sendLpusMessage(dataParts, callbackQuery);
+                }
 
-            if (dataParts[0].equals("speciality")) {
-                List<DoctorDto> doctorDtos = appointmentService.getDoctors(Integer.valueOf(dataParts[1]), Integer.valueOf(dataParts[2]));
-                List<InlineButtonMessageDto> lpusMessageDtos = doctorDtos.stream()
-                        .map(doctorDto -> new InlineButtonMessageDto(
-                                String.format("%s (%s номерков свободно)", doctorDto.getName(), doctorDto.getFreeTicketCount()),
-                                String.format("doctor_%s_%s_%s", dataParts[1], doctorDto.getId(), doctorDto.getFreeTicketCount())
-                        ))
-                        .toList();
-                InlineKeyboardMarkup markup = getKeyBoardRows(lpusMessageDtos, 1);
-                sendMessage(callbackQuery.getMessage().getChatId(), "Выберите врача:", markup);
-            }
+                if (dataParts[0].equals("lpus")) {
+                    sendSpecialityMessage(dataParts, callbackQuery);
+                }
 
-            if (dataParts[0].equals("doctor")) {
-                if (Integer.parseInt(dataParts[3]) > 0) {
-                    sendMessage(callbackQuery.getMessage().getChatId(), "Свободные номерки доступны на сайте горздрав", null); //TODO добавить кликабельную ссылку на врача
-                } else {
-                    SearchRequest searchRequest = SearchRequest.builder()
-                            .chatId(callbackQuery.getMessage().getChatId())
-                            .lpuId(Long.valueOf(dataParts[1]))
-                            .doctorId(dataParts[2])
-                            .build();
-                    appointmentService.saveSearchRequest(searchRequest);
-                    sendMessage(callbackQuery.getMessage().getChatId(), "Запрос на поиск сформирован", null);
+                if (dataParts[0].equals("speciality")) {
+                    sendDoctorsMessage(dataParts, callbackQuery);
+                }
+
+                if (dataParts[0].equals("doctor")) {
+                    createResultMessage(dataParts, callbackQuery);
                 }
             }
         }
+    }
+
+    private void createResultMessage(String[] dataParts, CallbackQuery callbackQuery) {
+        if (Integer.parseInt(dataParts[3]) > 0) {
+            sendMessage(callbackQuery.getMessage().getChatId(), "Свободные номерки доступны на сайте горздрав", null); //TODO добавить кликабельную ссылку на врача
+        } else {
+            SearchRequest searchRequest = SearchRequest.builder()
+                    .chatId(callbackQuery.getMessage().getChatId())
+                    .lpuId(Long.valueOf(dataParts[1]))
+                    .doctorId(dataParts[2])
+                    .build();
+            appointmentService.saveSearchRequest(searchRequest);
+            sendMessage(callbackQuery.getMessage().getChatId(), "Запрос на поиск сформирован", null);
+        }
+    }
+
+    private void sendDoctorsMessage(String[] dataParts, CallbackQuery callbackQuery) {
+        List<DoctorDto> doctorDtos = appointmentService.getDoctors(Integer.valueOf(dataParts[1]), Integer.valueOf(dataParts[2]));
+        List<InlineButtonMessageDto> lpusMessageDtos = doctorDtos.stream()
+                .map(doctorDto -> new InlineButtonMessageDto(
+                        String.format("%s (%s номерков свободно)", doctorDto.getName(), doctorDto.getFreeTicketCount()),
+                        String.format("doctor_%s_%s_%s", dataParts[1], doctorDto.getId(), doctorDto.getFreeTicketCount())
+                ))
+                .toList();
+        InlineKeyboardMarkup markup = getKeyBoardRows(lpusMessageDtos, 1);
+        sendMessage(callbackQuery.getMessage().getChatId(), "Выберите врача:", markup);
+    }
+
+    private void sendSpecialityMessage(String[] dataParts, CallbackQuery callbackQuery) {
+        Integer lpuId = Integer.valueOf(dataParts[1]);
+        List<SpecialityDto> specialities = appointmentService.getSpecialities(lpuId);
+        List<InlineButtonMessageDto> lpusMessageDtos = specialities.stream()
+                .map(specialityDto -> new InlineButtonMessageDto(
+                        specialityDto.getName(),
+                        String.format("speciality_%s_%s", lpuId, specialityDto.getId().toString())
+                ))
+                .toList();
+        InlineKeyboardMarkup markup = getKeyBoardRows(lpusMessageDtos, 1);
+        sendMessage(callbackQuery.getMessage().getChatId(), "Выберите специальность:", markup);
+    }
+
+    private void sendLpusMessage(String[] dataParts, CallbackQuery callbackQuery) {
+        List<Lpus> lpusByDistrictId = appointmentService.getLpusByDistrictId(Integer.valueOf(dataParts[1]));
+        List<InlineButtonMessageDto> lpusMessageDtos = lpusByDistrictId.stream()
+                .map(lpus -> new InlineButtonMessageDto(
+                        lpus.getFullName(),
+                        String.format("lpus_%s", lpus.getId().toString())
+                ))
+                .toList();
+        InlineKeyboardMarkup markup = getKeyBoardRows(lpusMessageDtos, 1);
+        sendMessage(callbackQuery.getMessage().getChatId(), "Выберите поликлинику:", markup);
+    }
+
+    private void sendDistrictMessage(Update update) {
+        List<District> districts = districtRepository.findAll();
+        List<InlineButtonMessageDto> districtsMessageDtos = districts.stream()
+                .map(district -> new InlineButtonMessageDto(
+                        district.getName(),
+                        String.format("district_%s", district.getId().toString()))
+                )
+                .toList();
+        InlineKeyboardMarkup markup = getKeyBoardRows(districtsMessageDtos, 3);
+        sendMessage(update.getMessage().getChatId(), "Бот предназначен для поиска номерков в поликлиниках СПб. " +
+                "Выберите врача и бот уведомит вас, когда номерок появится. Срок поиска - 1 неделя.", null);
+        sendMessage(update.getMessage().getChatId(), "Выберите район:", markup);
     }
 
     private InlineKeyboardMarkup getKeyBoardRows(List<InlineButtonMessageDto> values, int countByRow) {

@@ -35,4 +35,9 @@ public class AppointmentService {
     public void saveSearchRequest(SearchRequest searchRequest) {
         searchRequestRepository.save(searchRequest);
     }
+
+    public List<SearchRequest> findSearchByChatId(Long chatId) {
+        return searchRequestRepository.findByChatId(chatId);
+    }
+
 }
