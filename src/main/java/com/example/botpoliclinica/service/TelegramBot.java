@@ -4,6 +4,7 @@ import com.example.botpoliclinica.client.GorzdravFeignClient;
 import com.example.botpoliclinica.config.TelegramBotConfiguration;
 import com.example.botpoliclinica.domain.District;
 import com.example.botpoliclinica.domain.Lpus;
+import com.example.botpoliclinica.domain.SearchRequest;
 import com.example.botpoliclinica.dto.DoctorDto;
 import com.example.botpoliclinica.dto.SpecialityDto;
 import com.example.botpoliclinica.repository.DistrictRepository;
@@ -30,8 +31,8 @@ import java.util.List;
 public class TelegramBot extends TelegramLongPollingBot {
     private final TelegramBotConfiguration telegramBotConfiguration;
     private final DistrictRepository districtRepository;
-    private final LpusService lpusService;
-    private final GorzdravFeignClient gorzdravFeignClient;
+    private final AppointmentService appointmentService;
+//    private final GorzdravFeignClient gorzdravFeignClient;
 
     @Override
     public String getBotUsername() {
@@ -65,7 +66,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             String data = callbackQuery.getData();
             String[] dataParts = data.split("_");
             if (dataParts[0].equals("district")) {
-                List<Lpus> lpusByDistrictId = lpusService.getLpusByDistrictId(Integer.valueOf(dataParts[1]));
+                List<Lpus> lpusByDistrictId = appointmentService.getLpusByDistrictId(Integer.valueOf(dataParts[1]));
                 List<InlineButtonMessageDto> lpusMessageDtos = lpusByDistrictId.stream()
                         .map(lpus -> new InlineButtonMessageDto(
                                 lpus.getFullName(),
@@ -78,7 +79,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             if (dataParts[0].equals("lpus")) {
                 Integer lpuId = Integer.valueOf(dataParts[1]);
-                List<SpecialityDto> specialities = gorzdravFeignClient.getSpecialites(lpuId).getResult();
+                List<SpecialityDto> specialities = appointmentService.getSpecialities(lpuId);
                 List<InlineButtonMessageDto> lpusMessageDtos = specialities.stream()
                         .map(specialityDto -> new InlineButtonMessageDto(
                                 specialityDto.getName(),
@@ -90,7 +91,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
 
             if (dataParts[0].equals("speciality")) {
-                List<DoctorDto> doctorDtos = gorzdravFeignClient.getDoctors(Integer.valueOf(dataParts[1]), Integer.valueOf(dataParts[2])).getResult();
+                List<DoctorDto> doctorDtos = appointmentService.getDoctors(Integer.valueOf(dataParts[1]), Integer.valueOf(dataParts[2]));
                 List<InlineButtonMessageDto> lpusMessageDtos = doctorDtos.stream()
                         .map(doctorDto -> new InlineButtonMessageDto(
                                 String.format("%s (%s номерков свободно)", doctorDto.getName(), doctorDto.getFreeTicketCount()),
@@ -105,6 +106,12 @@ public class TelegramBot extends TelegramLongPollingBot {
                 if (Integer.parseInt(dataParts[3]) > 0) {
                     sendMessage(callbackQuery.getMessage().getChatId(), "Свободные номерки доступны на сайте горздрав", null); //TODO добавить кликабельную ссылку на врача
                 } else {
+                    SearchRequest searchRequest = SearchRequest.builder()
+                            .chatId(callbackQuery.getMessage().getChatId())
+                            .lpuId(Long.valueOf(dataParts[1]))
+                            .doctorId(dataParts[2])
+                            .build();
+                    appointmentService.saveSearchRequest(searchRequest);
                     sendMessage(callbackQuery.getMessage().getChatId(), "Запрос на поиск сформирован", null);
                 }
             }
