@@ -35,6 +35,9 @@ public class SearchRequest {
     @Column(name = "completed", nullable = false)
     private boolean completed;
 
+    @Column(name = "found", nullable = false)
+    private boolean found;
+
     @PrePersist
     protected void onCreate() {
         if (createdDatetime == null) {

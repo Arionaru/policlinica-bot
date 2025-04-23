@@ -1,6 +1,5 @@
 package com.example.botpoliclinica.service;
 
-import com.example.botpoliclinica.client.GorzdravFeignClient;
 import com.example.botpoliclinica.config.TelegramBotConfiguration;
 import com.example.botpoliclinica.domain.District;
 import com.example.botpoliclinica.domain.Lpus;

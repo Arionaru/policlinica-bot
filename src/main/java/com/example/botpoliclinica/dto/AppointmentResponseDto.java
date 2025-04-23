@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ResponseDto {
+public class AppointmentResponseDto {
     List<Appointment> result;
     private Boolean success;
     private Integer errorCode;

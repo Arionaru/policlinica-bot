@@ -1,5 +1,6 @@
 package com.example.botpoliclinica.client;
 
+import com.example.botpoliclinica.dto.AppointmentResponseDto;
 import com.example.botpoliclinica.dto.DoctorResponseDto;
 import com.example.botpoliclinica.dto.LpusResponseDto;
 import com.example.botpoliclinica.dto.SpecialityResponseDto;
@@ -19,4 +20,6 @@ public interface GorzdravFeignClient {
     @GetMapping("/schedule/lpu/{lpuId}/speciality/{specId}/doctors")
     DoctorResponseDto getDoctors(@PathVariable("lpuId") Integer lpuId, @PathVariable("specId") Integer specId);
 
+    @GetMapping("/schedule/lpu/{lpuId}/doctor/{doctorId}/appointments")
+    AppointmentResponseDto getAppointment(@PathVariable("lpuId") Long lpuId, @PathVariable("doctorId") String doctorId);
 }
