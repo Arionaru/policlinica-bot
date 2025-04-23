@@ -10,6 +10,7 @@ import com.example.botpoliclinica.repository.LpusRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -50,6 +51,7 @@ public class LpusService {
         });
     }
 
+    @Cacheable("lpusCache")
     public List<Lpus> getLpusByDistrictId(Integer districtId) {
         return lpusRepository.findAllByDistrict_Id(districtId);
     }

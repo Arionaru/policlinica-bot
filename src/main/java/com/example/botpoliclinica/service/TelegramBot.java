@@ -29,7 +29,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TelegramBot extends TelegramLongPollingBot {
     private final TelegramBotConfiguration telegramBotConfiguration;
-    private final DistrictRepository districtRepository;
     private final AppointmentService appointmentService;
 
     @Override
@@ -132,7 +131,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void sendDistrictMessage(Update update) {
-        List<District> districts = districtRepository.findAll();
+        List<District> districts = appointmentService.getDistricts();
         List<InlineButtonMessageDto> districtsMessageDtos = districts.stream()
                 .map(district -> new InlineButtonMessageDto(
                         district.getName(),
