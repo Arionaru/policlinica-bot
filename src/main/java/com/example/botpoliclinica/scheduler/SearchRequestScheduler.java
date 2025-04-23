@@ -33,7 +33,6 @@ public class SearchRequestScheduler {
             request.setCompleted(true);
             appointmentService.saveSearchRequest(request);
         }
-        log.info("Завершено {} заявок", expiredRequests.size());
     }
 
     @Scheduled(cron = "0 */5 * * * *") // каждые 5 минут TODO вынести в конфиг
@@ -55,6 +54,5 @@ public class SearchRequestScheduler {
                 });
             }
         });
-        log.info("Поиск номерков завершен");
     }
 }
