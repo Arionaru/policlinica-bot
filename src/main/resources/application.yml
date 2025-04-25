@@ -1,6 +1,6 @@
 bot:
   name: "policlinica"
-  token: 6598381852:AAEzH2NcFBGZJ1Dkg7dKbPM3jawMBU-tBTk
+  token: {token}
 
 spring:
   datasource:
